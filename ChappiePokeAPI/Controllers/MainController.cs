@@ -12,7 +12,7 @@ namespace ChappiePokeAPI.Controllers
     [Microsoft.AspNetCore.Cors.EnableCors("MyPolicy")]
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class MainController : ControllerBase
+    public class MainController : Controller
     {
 
         PokeDBContext PokeDB;
