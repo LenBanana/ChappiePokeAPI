@@ -26,7 +26,7 @@ namespace ChappiePokeAPI.Controllers
         public IActionResult UploadProductImages()
         {
             var files = Request.Form.Files;
-            return Ok(true);
+            return Ok();
         }
     }
 }
