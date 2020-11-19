@@ -45,8 +45,18 @@ namespace ChappiePokeAPI
             services.AddSignalR(options => {
                 options.EnableDetailedErrors = false;
                 options.MaximumReceiveMessageSize = 50000;
+            }).AddJsonProtocol(o =>
+            {
+                o.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
+                o.PayloadSerializerOptions.PropertyNamingPolicy = null;
+                o.PayloadSerializerOptions.DictionaryKeyPolicy = null;
             });
-            services.AddControllers();
+            services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+                options.JsonSerializerOptions.PropertyNamingPolicy = null;
+                options.JsonSerializerOptions.DictionaryKeyPolicy = null;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
