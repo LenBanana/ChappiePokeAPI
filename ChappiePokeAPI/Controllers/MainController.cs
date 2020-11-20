@@ -28,5 +28,13 @@ namespace ChappiePokeAPI.Controllers
             var files = Request.Form.Files;
             return Ok();
         }
+
+
+
+        [HttpGet]
+        public IActionResult TestGet()
+        {
+            return Ok();
+        }
     }
 }
