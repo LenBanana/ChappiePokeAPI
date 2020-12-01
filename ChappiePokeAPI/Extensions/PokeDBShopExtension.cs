@@ -14,6 +14,7 @@ namespace ChappiePokeAPI.Extensions
             List<Product> products = context.Products.ToList();
             products.ForEach(x => x.Cards = context.Cards.Where(y => y.ProductID == x.ProductID).ToList());
             products.ForEach(x => x.ProductGroups = context.ProductGroups.Where(y => y.ProductID == x.ProductID).ToList());
+            products.ForEach(x => x.ProductGroups.ForEach(y => y.Group = context.Groups.First(z => z.GroupID == y.GroupID)));
             products.ForEach(x => x.ImageGroups = context.ImageGroups.Where(y => y.ProductID == x.ProductID).ToList());
             return products;
         }

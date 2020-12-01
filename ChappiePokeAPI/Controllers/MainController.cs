@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ChappiePokeAPI.DataAccess;
 using EntityModels.EntityModels;
+using HelperVariables.Globals;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,9 +25,35 @@ namespace ChappiePokeAPI.Controllers
         }
 
         [HttpPost, DisableRequestSizeLimit]
-        public IActionResult UploadProductImages()
+        public async Task<IActionResult> UploadProductImages([FromForm] IFormFileCollection collection)
         {
             var files = Request.Form.Files;
+            try
+            {
+                foreach (var file in files)
+                {
+                    //var fileType = Path.GetExtension(file.FileName);
+                    //if (fileType.ToLower() == ".pdf" || fileType.ToLower() == ".jpg" || fileType.ToLower() == ".png" || fileType.ToLower() == ".jpeg")
+                    //{
+                    var docName = Path.GetFileName(file.FileName);
+                    if (file != null && file.Length > 0)
+                    {
+                        string filePath = Path.Combine(Paths.AssetUploadPath, file.FileName);
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await file.CopyToAsync(stream);
+                        }
+                    }
+                    else
+                    {
+                        return BadRequest();
+                    }
+                    //}
+                }
+            } catch
+            {
+                return StatusCode(501, "F");
+            }
             return Ok();
         }
 
