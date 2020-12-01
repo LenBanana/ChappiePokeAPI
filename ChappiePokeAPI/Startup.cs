@@ -37,10 +37,11 @@ namespace ChappiePokeAPI
             {
                 builder.SetIsOriginAllowedToAllowWildcardSubdomains()
                         //.SetIsOriginAllowed(hostname => true)
-                        //.WithOrigins(new string[] { "http://localhost:4200", "https://localhost:4200", "https://dreckbu.de", "https://*.dreckbu.de", "https://dreckbu.de/*" })
-                        .AllowAnyOrigin()
+                        .WithOrigins(new string[] { "http://localhost:4200", "https://localhost:4200", "https://dreckbu.de", "https://*.dreckbu.de", "https://dreckbu.de/*" })
+                        //.AllowAnyOrigin()
                        .AllowAnyMethod()
-                       .AllowAnyHeader();
+                       .AllowAnyHeader()
+                       .AllowCredentials();
             }));
             services.AddSignalR(options => {
                 options.EnableDetailedErrors = false;
