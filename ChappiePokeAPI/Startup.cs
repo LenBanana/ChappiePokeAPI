@@ -40,8 +40,7 @@ namespace ChappiePokeAPI
                         //.WithOrigins(new string[] { "http://localhost:4200", "https://localhost:4200", "https://dreckbu.de", "https://*.dreckbu.de", "https://dreckbu.de/*" })
                         .AllowAnyOrigin()
                        .AllowAnyMethod()
-                       .AllowAnyHeader()
-                       .AllowCredentials();
+                       .AllowAnyHeader();
             }));
             services.AddSignalR(options => {
                 options.EnableDetailedErrors = false;
