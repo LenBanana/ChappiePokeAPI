@@ -8,6 +8,7 @@ using EntityModels.EntityModels;
 using HelperVariables.Globals;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Models.DTOModels;
 
 namespace ChappiePokeAPI.Controllers
 {
@@ -25,11 +26,11 @@ namespace ChappiePokeAPI.Controllers
         }
 
         [HttpPost, DisableRequestSizeLimit]
-        public async Task<IActionResult> UploadProductImages([FromForm] IFormCollection fis)
+        public async Task<IActionResult> UploadProductImages([FromForm] FileUploadRequest request)
         {
             try
             {
-                var files = fis.Files;
+                var files = request.Files;
                 foreach (var file in files)
                 {
                     //var fileType = Path.GetExtension(file.FileName);
