@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 
 namespace ChappiePokeAPI
 {
@@ -29,6 +30,8 @@ namespace ChappiePokeAPI
             SmtpSettings smtpSettings = Configuration.GetSection("Smtp").Get<SmtpSettings>();
             Paths.AssetUploadPath = Configuration.GetSection("AssetPath").Value;
             EmailSender._smtpSettings = smtpSettings;
+            Console.WriteLine(System.IO.Directory.GetCurrentDirectory());
+            Console.WriteLine(System.IO.Directory.GetCurrentDirectory() + Paths.AssetUploadPath);
             if (!System.IO.Directory.Exists(Paths.AssetUploadPath))
             {
                 System.IO.Directory.CreateDirectory(Paths.AssetUploadPath);
