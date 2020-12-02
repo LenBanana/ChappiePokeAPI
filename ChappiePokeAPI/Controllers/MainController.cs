@@ -25,7 +25,7 @@ namespace ChappiePokeAPI.Controllers
         }
 
         [HttpPost, DisableRequestSizeLimit]
-        public async Task<IActionResult> UploadProductImages([FromForm] IFormFileCollection collection)
+        public async Task<IActionResult> UploadProductImages()
         {
             var files = Request.Form.Files;
             try
