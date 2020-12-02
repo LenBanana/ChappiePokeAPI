@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChappiePokeAPI.Controllers
 {
-    [Microsoft.AspNetCore.Cors.EnableCors("MyPolicy")]
+    [Microsoft.AspNetCore.Cors.EnableCors("AllowAll")]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class MainController : Controller

@@ -33,16 +33,25 @@ namespace ChappiePokeAPI
             {
                 options.UseMySql(Configuration.GetConnectionString("PokeDB"));
             });
-            services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
-            {
-                builder.SetIsOriginAllowedToAllowWildcardSubdomains()
-                        //.SetIsOriginAllowed(hostname => true)
-                        .WithOrigins(new string[] { "http://localhost:4200", "https://localhost:4200", "https://dreckbu.de", "https://*.dreckbu.de", "https://dreckbu.de/*" })
-                        //.AllowAnyOrigin()
-                       .AllowAnyMethod()
-                       .AllowAnyHeader()
-                       .AllowCredentials();
-            }));
+            services.AddCors(o => {
+                o.AddPolicy("MyPolicy", builder =>
+                {
+                    builder.SetIsOriginAllowedToAllowWildcardSubdomains()
+                            //.SetIsOriginAllowed(hostname => true)
+                            .WithOrigins(new string[] { "http://localhost:4200", "https://localhost:4200", "https://dreckbu.de", "https://*.dreckbu.de", "https://dreckbu.de/*" })
+                           //.AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader()
+                           .AllowCredentials();
+                });
+                o.AddPolicy("AllowAll", builder =>
+                {
+                    builder.SetIsOriginAllowedToAllowWildcardSubdomains()
+                    .AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader();
+                });
+            });
             services.AddSignalR(options => {
                 options.EnableDetailedErrors = false;
                 options.MaximumReceiveMessageSize = 50000;
