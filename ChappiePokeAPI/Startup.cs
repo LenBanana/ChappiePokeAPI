@@ -29,6 +29,10 @@ namespace ChappiePokeAPI
             SmtpSettings smtpSettings = Configuration.GetSection("Smtp").Get<SmtpSettings>();
             Paths.AssetUploadPath = Configuration.GetSection("AssetPath").Value;
             EmailSender._smtpSettings = smtpSettings;
+            if (!System.IO.Directory.Exists(Paths.AssetUploadPath))
+            {
+                System.IO.Directory.CreateDirectory(Paths.AssetUploadPath);
+            }
             services.AddDbContext<PokeDBContext>(options =>
             {
                 options.UseMySql(Configuration.GetConnectionString("PokeDB"));
