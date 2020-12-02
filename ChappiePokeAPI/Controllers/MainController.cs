@@ -12,7 +12,7 @@ using Models.DTOModels;
 
 namespace ChappiePokeAPI.Controllers
 {
-    //[Microsoft.AspNetCore.Cors.EnableCors("AllowAll")]
+    [Microsoft.AspNetCore.Cors.EnableCors("AllowAll")]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class MainController : Controller
@@ -52,8 +52,9 @@ namespace ChappiePokeAPI.Controllers
                     }
                     //}
                 }
-            } catch
+            } catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return StatusCode(501, "F");
             }
             return Ok();
