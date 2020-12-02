@@ -48,12 +48,12 @@ namespace ChappiePokeAPI
                            .AllowAnyHeader()
                            .AllowCredentials();
                 });
-                o.AddPolicy("AllowAll", builder =>
-                {
-                    builder.AllowAnyOrigin()
-                           .AllowAnyMethod()
-                           .AllowAnyHeader();
-                });
+                //o.AddPolicy("AllowAll", builder =>
+                //{
+                //    builder.AllowAnyOrigin()
+                //           .AllowAnyMethod()
+                //           .AllowAnyHeader();
+                //});
             });
             services.AddSignalR(options => {
                 options.EnableDetailedErrors = false;

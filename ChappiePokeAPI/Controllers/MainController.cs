@@ -9,10 +9,10 @@ using HelperVariables.Globals;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Models.DTOModels;
+using ChappiePokeAPI.Extensions;
 
 namespace ChappiePokeAPI.Controllers
 {
-    [Microsoft.AspNetCore.Cors.EnableCors("AllowAll")]
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class MainController : Controller
@@ -30,6 +30,12 @@ namespace ChappiePokeAPI.Controllers
         {
             try
             {
+                var SessionKey = request.Param;
+                User user = PokeDB.GetUserCopy(SessionKey, false);
+                if (user.UserPrivileges != Models.Enums.UserPrivileges.Administrator)
+                {
+                    return StatusCode(401, "Unauthorized");
+                }
                 var files = request.Files;
                 foreach (var file in files)
                 {
@@ -37,14 +43,17 @@ namespace ChappiePokeAPI.Controllers
                     //if (fileType.ToLower() == ".pdf" || fileType.ToLower() == ".jpg" || fileType.ToLower() == ".png" || fileType.ToLower() == ".jpeg")
                     //{
                     var docExt = System.IO.Path.GetExtension(file.FileName).ToString();
-                    var fileName = Path.GetRandomFileName() + docExt;
+                    var fileName = user.UserID + "/" + Path.GetRandomFileName() + docExt;
                     if (file != null && file.Length > 0)
                     {
                         string filePath = Path.Combine(Paths.AssetUploadPath, fileName);
+                        if (!Directory.Exists(filePath))
+                            Directory.CreateDirectory(filePath);
                         using (var stream = new FileStream(filePath, FileMode.Create))
                         {
                             await file.CopyToAsync(stream);
-                        }
+                        }                        
+                        PokeDB.Images.Add(new Image() { Fullsize = fileName, ImageID = 0, Thumbnail = fileName });
                     }
                     else
                     {
@@ -52,6 +61,7 @@ namespace ChappiePokeAPI.Controllers
                     }
                     //}
                 }
+                await PokeDB.SaveChangesAsync();
             } catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
