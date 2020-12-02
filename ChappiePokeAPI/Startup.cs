@@ -33,21 +33,21 @@ namespace ChappiePokeAPI
             {
                 options.UseMySql(Configuration.GetConnectionString("PokeDB"));
             });
-            services.AddCors(o => {
-                o.AddPolicy("MyPolicy", builder =>
-                {
-                    builder.WithOrigins(new string[] { "http://localhost:4200", "https://localhost:4200", "https://dreckbu.de", "https://*.dreckbu.de", "https://dreckbu.de/*" })
-                           .AllowAnyMethod()
-                           .AllowAnyHeader()
-                           .AllowCredentials();
-                });
-                o.AddPolicy("AllowAll", builder =>
-                {
-                    builder.AllowAnyOrigin()
-                           .AllowAnyMethod()
-                           .AllowAnyHeader();
-                });
-            });
+            //services.AddCors(o => {
+            //    o.AddPolicy("MyPolicy", builder =>
+            //    {
+            //        builder.WithOrigins(new string[] { "http://localhost:4200", "https://localhost:4200", "https://dreckbu.de", "https://*.dreckbu.de", "https://dreckbu.de/*" })
+            //               .AllowAnyMethod()
+            //               .AllowAnyHeader()
+            //               .AllowCredentials();
+            //    });
+            //    o.AddPolicy("AllowAll", builder =>
+            //    {
+            //        builder.AllowAnyOrigin()
+            //               .AllowAnyMethod()
+            //               .AllowAnyHeader();
+            //    });
+            //});
             services.AddSignalR(options => {
                 options.EnableDetailedErrors = false;
                 options.MaximumReceiveMessageSize = 50000;
@@ -77,7 +77,13 @@ namespace ChappiePokeAPI
             app.UseHttpsRedirection();
 
             app.UseRouting();
-            app.UseCors("MyPolicy");
+            app.UseCors(builder =>
+            {
+                builder.WithOrigins(new string[] { "http://localhost:4200", "https://localhost:4200", "https://dreckbu.de", "https://*.dreckbu.de", "https://dreckbu.de/*" })
+                              .AllowAnyMethod()
+                              .AllowAnyHeader()
+                              .AllowCredentials();
+            });
 
             app.UseAuthentication();
             app.UseAuthorization();
