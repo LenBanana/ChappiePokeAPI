@@ -32,7 +32,7 @@ namespace ChappiePokeAPI.Controllers
             {
                 var SessionKey = request.Param;
                 User user = PokeDB.GetUserCopy(SessionKey, false);
-                if (user.UserPrivileges != Models.Enums.UserPrivileges.Administrator)
+                if (user != null && user.UserPrivileges != Models.Enums.UserPrivileges.Administrator)
                 {
                     return StatusCode(401, "Unauthorized");
                 }
@@ -42,13 +42,15 @@ namespace ChappiePokeAPI.Controllers
                     //var fileType = Path.GetExtension(file.FileName);
                     //if (fileType.ToLower() == ".pdf" || fileType.ToLower() == ".jpg" || fileType.ToLower() == ".png" || fileType.ToLower() == ".jpeg")
                     //{
-                    var docExt = System.IO.Path.GetExtension(file.FileName).ToString();
-                    var fileName = user.UserID + "/" + Path.GetRandomFileName() + docExt;
                     if (file != null && file.Length > 0)
                     {
+                        var docExt = System.IO.Path.GetExtension(file.FileName).ToString();
+                        var fileName = user.UserID + "/" + Path.GetRandomFileName() + docExt;
+                        var userPath = Path.Combine(Paths.AssetUploadPath, user.UserID.ToString());
+                        if (!Directory.Exists(userPath))
+                            Directory.CreateDirectory(userPath);
+
                         string filePath = Path.Combine(Paths.AssetUploadPath, fileName);
-                        if (!Directory.Exists(filePath))
-                            Directory.CreateDirectory(filePath);
                         using (var stream = new FileStream(filePath, FileMode.Create))
                         {
                             await file.CopyToAsync(stream);
