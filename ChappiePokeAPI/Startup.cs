@@ -36,18 +36,14 @@ namespace ChappiePokeAPI
             services.AddCors(o => {
                 o.AddPolicy("MyPolicy", builder =>
                 {
-                    builder.SetIsOriginAllowedToAllowWildcardSubdomains()
-                            //.SetIsOriginAllowed(hostname => true)
-                            .WithOrigins(new string[] { "http://localhost:4200", "https://localhost:4200", "https://dreckbu.de", "https://*.dreckbu.de", "https://dreckbu.de/*" })
-                           //.AllowAnyOrigin()
+                    builder.WithOrigins(new string[] { "http://localhost:4200", "https://localhost:4200", "https://dreckbu.de", "https://*.dreckbu.de", "https://dreckbu.de/*" })
                            .AllowAnyMethod()
                            .AllowAnyHeader()
                            .AllowCredentials();
                 });
                 o.AddPolicy("AllowAll", builder =>
                 {
-                    builder.SetIsOriginAllowedToAllowWildcardSubdomains()
-                    .AllowAnyOrigin()
+                    builder.AllowAnyOrigin()
                            .AllowAnyMethod()
                            .AllowAnyHeader();
                 });
