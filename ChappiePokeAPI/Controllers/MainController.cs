@@ -45,8 +45,8 @@ namespace ChappiePokeAPI.Controllers
                     if (file != null && file.Length > 0)
                     {
                         var docExt = System.IO.Path.GetExtension(file.FileName).ToString();
-                        var fileName = user.UserID + "/" + Path.GetRandomFileName() + docExt;
-                        var userPath = Path.Combine(Paths.AssetUploadPath, user.UserID.ToString());
+                        var fileName = request.ProductID + "/" + Path.GetRandomFileName() + docExt;
+                        var userPath = Path.Combine(Paths.AssetUploadPath, request.ProductID.ToString());
                         if (!Directory.Exists(userPath))
                             Directory.CreateDirectory(userPath);
 

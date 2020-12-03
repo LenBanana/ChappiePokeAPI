@@ -59,7 +59,7 @@ namespace ChappiePokeAPI.Hubs
         public async Task ConfirmPassword(LoginRequest request)
         {
             PasswordConfirmationError error = PasswordConfirmationError.NoError;
-            User user = PokeDB.Users.FirstOrDefault(
+            User user = await PokeDB.Users.FirstOrDefaultAsync(
                 x => ((x.Username.ToLower() == request.UsernameOrMail.ToLower() || x.Email.ToLower() == request.UsernameOrMail.ToLower()) && x.Password == request.Password + "$" + x.PasswordSalt)); //
             if (user == null)
             {
@@ -80,7 +80,7 @@ namespace ChappiePokeAPI.Hubs
 
         public async Task Login(LoginRequest loginRequest)
         {
-            User user = PokeDB.Users.FirstOrDefault(
+            User user = await PokeDB.Users.FirstOrDefaultAsync(
                 x => ((x.Username.ToLower() == loginRequest.UsernameOrMail.ToLower() || x.Email.ToLower() == loginRequest.UsernameOrMail.ToLower()) && x.Password == loginRequest.Password + "$" + x.PasswordSalt) //
                     || (loginRequest.SessionKey.Length > 0 && x.SessionKey == loginRequest.SessionKey));
             if (user != null)
@@ -104,7 +104,7 @@ namespace ChappiePokeAPI.Hubs
             VerificationError response = VerificationError.NoError;
             try
             {
-                User user = PokeDB.Users.FirstOrDefault(x => x.SessionKey == verificationRequest.SessionKey);
+                User user = await PokeDB.Users.FirstOrDefaultAsync(x => x.SessionKey == verificationRequest.SessionKey);
                 if (user != null)
                 {
                     bool verified = await PokeDB.VerifyUser(user, verificationRequest.VerificationCode);
@@ -178,9 +178,18 @@ namespace ChappiePokeAPI.Hubs
             if (user != null && user.UserPrivileges == UserPrivileges.Administrator)
             {
                 List<Product> products = PokeDB.GetProducts();
-                products.ForEach(x => x.SaleOrderProducts = PokeDB.SaleOrderProducts.Where(y => y.ProductID == x.ProductID).ToList());
-                //products.ForEach(x => x.SaleOrderProducts.ForEach(y => y.Order = PokeDB.Orders.First(z => z.OrderID == y.OrderID)));
                 await Clients.Caller.SendAsync("ShopAdminRequest", products);
+            }
+        }
+
+        public async Task GetUserAdministration(GenericRequest request)
+        {
+            User user = PokeDB.GetUserCopy(request.SessionKey, false);
+            if (user != null && user.UserPrivileges == UserPrivileges.Administrator)
+            {
+                List<User> users = new List<User>(PokeDB.Users);
+                users.ForEach(x => { x.SessionKey = ""; x.PasswordSalt = ""; });
+                await Clients.Caller.SendAsync("UserAdminRequest", users);
             }
         }
 
@@ -192,7 +201,7 @@ namespace ChappiePokeAPI.Hubs
 
         public async Task UpdateUser(User requestUser)
         {
-            User user = PokeDB.Users.FirstOrDefault(x => x.SessionKey == requestUser.SessionKey);
+            User user = await PokeDB.Users.FirstOrDefaultAsync(x => x.SessionKey == requestUser.SessionKey);
             if (user != null)
             {
                 LoginResponse response = new LoginResponse(user);
@@ -211,6 +220,28 @@ namespace ChappiePokeAPI.Hubs
 
         }
 
+        public async Task SetUserPrivilege(GenericRequest request, User requestUser)
+        {
+            User user = PokeDB.GetUserCopy(request.SessionKey, false);
+            if (requestUser != null && user != null && user.UserPrivileges == UserPrivileges.Administrator)
+            {
+                User requestUserCopy = await PokeDB.Users.FirstOrDefaultAsync(x => x.UserID == requestUser.UserID);
+                if (requestUserCopy != null && user.UserPrivileges > requestUserCopy.UserPrivileges)
+                {
+                    requestUserCopy.UserPrivileges = requestUser.UserPrivileges;
+                    await PokeDB.SaveChangesAsync();
+                    List<User> users = new List<User>(PokeDB.Users);
+                    users.ForEach(x => { x.SessionKey = ""; x.PasswordSalt = ""; x.Password = ""; });
+                    await Clients.Caller.SendAsync("UserAdminRequest", users);
+                } else
+                {
+                    await Clients.Caller.SendAsync("UserChangeRequest", new UserChangeResponse(GenericError.Error));
+                }
+            }
+            else
+                await Clients.Caller.SendAsync("UserChangeRequest", new UserChangeResponse(GenericError.Error));
+        }
+
         public async Task UpdateCustomer(GenericRequest request, Customer customer)
         {
             List<Customer> customers = await PokeDB.UpdateCustomer(customer, request);
@@ -223,7 +254,7 @@ namespace ChappiePokeAPI.Hubs
 
         public async Task SetPassword(PasswordRequest request)
         {
-            User user = PokeDB.Users.FirstOrDefault(x => x.SessionKey == request.SessionKey);
+            User user = await PokeDB.Users.FirstOrDefaultAsync(x => x.SessionKey == request.SessionKey);
             if (user != null)
             {
                 user.Password = request.Password;
@@ -283,9 +314,44 @@ namespace ChappiePokeAPI.Hubs
             {
                 if (product.ProductID > 0)
                 {
-                    PokeDB.Products.Remove(product);
+                    var prod = await PokeDB.Products.FirstAsync(x => x.ProductID == product.ProductID);
+                    var images = new List<ImageGroup>(prod.ImageGroups);
+                    PokeDB.Products.Remove(prod);
                     await PokeDB.SaveChangesAsync();
+                    foreach (var img in images)
+                    {
+                        var imgPath = System.IO.Path.Combine(Paths.AssetUploadPath, img.ImagePath);
+                        if (System.IO.File.Exists(imgPath))
+                            System.IO.File.Delete(imgPath);
+
+                    }
                     await Clients.Caller.SendAsync("AddProductSuccess", true);
+                }
+            }
+        }
+
+        public async Task DeleteUser(GenericRequest request, User requestUser)
+        {
+            User user = PokeDB.GetUserCopy(request.SessionKey, false);
+            if (user != null && user.UserPrivileges == UserPrivileges.Administrator)
+            {
+                if (user.UserID == requestUser.UserID)
+                {
+                    await Clients.Caller.SendAsync("UserChangeRequest", new UserChangeResponse(GenericError.Error));
+                    return;
+                }
+                User requestUserCopy = await PokeDB.Users.FirstAsync(x => x.UserID == requestUser.UserID);
+                if (requestUserCopy != null && user.UserPrivileges > requestUserCopy.UserPrivileges)
+                {
+                    PokeDB.Users.Remove(requestUserCopy);
+                    await PokeDB.SaveChangesAsync();
+                    List<User> users = new List<User>(PokeDB.Users);
+                    users.ForEach(x => { x.SessionKey = ""; x.PasswordSalt = ""; x.Password = ""; });
+                    await Clients.Caller.SendAsync("UserAdminRequest", users);
+                }
+                else
+                {
+                    await Clients.Caller.SendAsync("UserChangeRequest", new UserChangeResponse(GenericError.Error));
                 }
             }
         }
