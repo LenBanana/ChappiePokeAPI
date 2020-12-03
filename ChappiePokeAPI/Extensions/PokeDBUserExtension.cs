@@ -1,6 +1,7 @@
 ﻿using ChappiePokeAPI.DataAccess;
 using EntityModels.EntityModels;
 using HelperMethods.Helper;
+using HelperVariables.Globals;
 using Models.DTOModels;
 using Models.DTOResponseModels;
 using Models.Enums;
@@ -24,13 +25,13 @@ namespace ChappiePokeAPI.Extensions
                 user.Username = registerRequest.Username;
                 user.Email = registerRequest.Email;
                 user.Avatar = registerRequest.Avatar;
-                user.Password = registerRequest.Password;
                 user.Name = registerRequest.Firstname;
                 user.Lastname = registerRequest.Lastname;
                 user.DateCreated = DateTime.Now;
                 user.RegisterCodeID = registerCode.RegisterCodeID;
                 user.SessionKey = Cryptographie.GenerateUniqueToken();
                 user.PasswordSalt = Cryptographie.GenerateUniqueToken();
+                user.Password = registerRequest.Password + "$" + user.PasswordSalt;
                 await context.Users.AddAsync(user);
                 await context.SaveChangesAsync();
                 await user.SendRegisterMail();
@@ -74,6 +75,32 @@ namespace ChappiePokeAPI.Extensions
             }
         }
 
+        public static async Task<Product> UpdateProduct(this PokeDBContext context, Product product)
+        {
+
+            var prod = context.Products.First(x => x.ProductID == product.ProductID);
+            prod.Name = product.Name;
+            prod.Type = product.Type;
+            prod.Description = product.Description;
+            prod.Cost = product.Cost;
+            prod.Price = product.Price;
+            var groups = prod.ProductGroups.Count;
+            prod.ProductGroups = product.ProductGroups;
+
+            var imagesToDelete = prod.ImageGroups.Where(x => !product.ImageGroups.Any(y => y.ImagePath == x.ImagePath));
+            foreach (var img in imagesToDelete)
+            {
+                var imgPath = System.IO.Path.Combine(Paths.AssetUploadPath, img.ImagePath);
+                if (System.IO.File.Exists(imgPath))
+                {
+                    System.IO.File.Delete(imgPath);
+                }
+            }
+            prod.ImageGroups = product.ImageGroups;
+            await context.SaveChangesAsync();
+            return prod;
+        }
+
         public static async Task<List<Customer>> UpdateCustomer(this PokeDBContext context, Customer customer, GenericRequest request)
         {
             try
@@ -82,26 +109,26 @@ namespace ChappiePokeAPI.Extensions
                 if (user != null)
                 {
                     user.Customers = context.Customers.Where(x => x.UserID == user.UserID).ToList();
-                    int idx = user.Customers.FindIndex(x => x.CustomerID == customer.CustomerID);
+                    int idx = user.Customers.ToList().FindIndex(x => x.CustomerID == customer.CustomerID);
                     if (idx != -1)
                     {
-                        user.Customers[idx].BillingAddress = context.Addresses.First(x => x.AddressID == user.Customers[idx].BillingAddressAddressID);
-                        user.Customers[idx].ShippingAddress = context.Addresses.First(x => x.AddressID == user.Customers[idx].ShippingAddressAddressID);
-                        user.Customers[idx].Name = customer.Name;
-                        user.Customers[idx].Lastname = customer.Lastname;
+                        user.Customers.ElementAt(idx).BillingAddress = context.Addresses.First(x => x.AddressID == user.Customers.ElementAt(idx).BillingAddressAddressID);
+                        user.Customers.ElementAt(idx).ShippingAddress = context.Addresses.First(x => x.AddressID == user.Customers.ElementAt(idx).ShippingAddressAddressID);
+                        user.Customers.ElementAt(idx).Name = customer.Name;
+                        user.Customers.ElementAt(idx).Lastname = customer.Lastname;
                         if (!user.Customers.Any(x => x.CustomerID != customer.CustomerID && x.Email == customer.Email))
-                            user.Customers[idx].Email = customer.Email;
-                        user.Customers[idx].CompanyName = customer.CompanyName;
-                        user.Customers[idx].ContactPerson = customer.ContactPerson;
+                            user.Customers.ElementAt(idx).Email = customer.Email;
+                        user.Customers.ElementAt(idx).CompanyName = customer.CompanyName;
+                        user.Customers.ElementAt(idx).ContactPerson = customer.ContactPerson;
                         if (!user.Customers.Any(x => x.CustomerID != customer.CustomerID && (x.BillingAddress.AddressLine1 == customer.BillingAddress.AddressLine1 && x.BillingAddress.AddressLine2 == customer.BillingAddress.AddressLine2)))
                         {
-                            user.Customers[idx].BillingAddress.AddressLine1 = customer.BillingAddress.AddressLine1;
-                            user.Customers[idx].BillingAddress.AddressLine2 = customer.BillingAddress.AddressLine2;
+                            user.Customers.ElementAt(idx).BillingAddress.AddressLine1 = customer.BillingAddress.AddressLine1;
+                            user.Customers.ElementAt(idx).BillingAddress.AddressLine2 = customer.BillingAddress.AddressLine2;
                         }
-                        user.Customers[idx].BillingAddress.Country = customer.BillingAddress.Country;
-                        user.Customers[idx].BillingAddress.State = customer.BillingAddress.State;
-                        user.Customers[idx].BillingAddress.City = customer.BillingAddress.City;
-                        user.Customers[idx].BillingAddress.PostalCode = customer.BillingAddress.PostalCode;
+                        user.Customers.ElementAt(idx).BillingAddress.Country = customer.BillingAddress.Country;
+                        user.Customers.ElementAt(idx).BillingAddress.State = customer.BillingAddress.State;
+                        user.Customers.ElementAt(idx).BillingAddress.City = customer.BillingAddress.City;
+                        user.Customers.ElementAt(idx).BillingAddress.PostalCode = customer.BillingAddress.PostalCode;
                         await context.SaveChangesAsync();
                         List<Customer> result = new List<Customer>(user.Customers);
                         result.ForEach(x => { x.User = new User(); x.BillingAddress = context.Addresses.First(y => y.AddressID == x.BillingAddressAddressID); });
@@ -182,9 +209,9 @@ namespace ChappiePokeAPI.Extensions
                 user.SessionKey = "";
                 if (GetOrders)
                 {
-                    user.Orders = context.Orders.Where(x => x.UserID == user.UserID).ToList();
-                    user.Orders.ForEach(x => x.SaleOrderProducts = context.SaleOrderProducts.Where(y => y.OrderID == x.OrderID).ToList());
-                    user.Orders.ForEach(x => x.SaleOrderProducts.ForEach(y => y.Product = context.Products.First(z => z.ProductID == y.ProductID)));
+                    //user.Orders = context.Orders.Where(x => x.UserID == user.UserID).ToList();
+                    //user.Orders.ForEach(x => x.SaleOrderProducts = context.SaleOrderProducts.Where(y => y.OrderID == x.OrderID).ToList());
+                    //user.Orders.ForEach(x => x.SaleOrderProducts.ForEach(y => y.Product = context.Products.First(z => z.ProductID == y.ProductID)));
                 }
                 return user;
             } else

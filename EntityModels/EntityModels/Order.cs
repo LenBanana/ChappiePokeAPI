@@ -9,12 +9,18 @@ namespace EntityModels.EntityModels
 {
     public class Order
     {
+        public Order()
+        {
+
+        }
         public int OrderID { get; set; }
         public int UserID { get; set; }
         [ForeignKey("UserID")]
+        [System.Text.Json.Serialization.JsonIgnore]
         public virtual User User { get; set; }
         public int CustomerID { get; set; }
         [ForeignKey("CustomerID")]
+        [System.Text.Json.Serialization.JsonIgnore]
         public virtual Customer Customer { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime DateOrder { get; set; }
@@ -22,6 +28,6 @@ namespace EntityModels.EntityModels
         [Required(AllowEmptyStrings = true)]
         public string Status { get; set; }
         public DateTime LastModified { get; set; }
-        public virtual List<SaleOrderProduct> SaleOrderProducts { get; set; }
+        public virtual ICollection<SaleOrderProduct> SaleOrderProducts { get; set; }
     }
 }

@@ -54,9 +54,10 @@ namespace ChappiePokeAPI.Controllers
                         using (var stream = new FileStream(filePath, FileMode.Create))
                         {
                             await file.CopyToAsync(stream);
-                        }                        
-                        PokeDB.Images.Add(new Image() { Fullsize = fileName, ImageID = 0, Thumbnail = fileName });
-                    }
+                        }
+                        Product product = PokeDB.Products.First(x => x.ProductID == request.ProductID);
+                        product.ImageGroups.Add(new ImageGroup() { ImagePath = fileName }); //Image = new Image() { Fullsize = fileName, ImageID = 0, Thumbnail = fileName
+                }
                     else
                     {
                         return BadRequest();

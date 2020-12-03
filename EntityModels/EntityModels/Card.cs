@@ -9,13 +9,17 @@ namespace EntityModels.EntityModels
 {
     public class Card
     {
+        public Card()
+        {
+
+        }
         public int CardID { get; set; }
         public int ProductID { get; set; }
         [ForeignKey("ProductID")]
+        [System.Text.Json.Serialization.JsonIgnore]
         public virtual Product Product { get; set; }
         public int ImageID { get; set; }
         public virtual Image Image { get; set; }
-
         [Required(AllowEmptyStrings = true)]
         [MaxLength(100)]
         public string Name { get; set; }

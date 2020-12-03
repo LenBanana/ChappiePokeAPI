@@ -46,8 +46,8 @@ namespace EntityModels.EntityModels
         public string Avatar { get; set; }
         public string SessionKey { get; set; }
         public string PasswordSalt { get; set; }
-        public virtual List<Order> Orders { get; set; }
-        public virtual List<Customer> Customers { get; set; }
+        public virtual ICollection<Order> Orders { get; set; }
+        public virtual ICollection<Customer> Customers { get; set; }
         public int RegisterCodeID { get; set; }
         [ForeignKey("RegisterCodeID")]
         public virtual RegisterCode RegisterCode { get; set; }

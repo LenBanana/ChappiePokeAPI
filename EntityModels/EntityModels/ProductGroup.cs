@@ -8,9 +8,18 @@ namespace EntityModels.EntityModels
 {
     public class ProductGroup
     {
+        public ProductGroup()
+        {
+
+        }
         public int ProductGroupID { get; set; }
         public int ProductID { get; set; }
-        public int GroupID { get; set; }
-        public virtual Group Group { get; set; }
+
+        [System.Text.Json.Serialization.JsonIgnore]
+        [ForeignKey("ProductID")]
+        public virtual Product Product { get; set; }
+        //public int GroupID { get; set; }
+        //[ForeignKey("GroupID")]
+        public string GroupName { get; set; }
     }
 }

@@ -8,6 +8,10 @@ namespace EntityModels.EntityModels
 {
     public class Image
     {
+        public Image()
+        {
+
+        }
         public int ImageID { get; set; }
 
         [Required(AllowEmptyStrings = true)]

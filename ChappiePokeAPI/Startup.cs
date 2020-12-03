@@ -5,12 +5,12 @@ using HelperMethods.Models;
 using HelperVariables.Globals;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System;
 
 namespace ChappiePokeAPI
@@ -36,9 +36,9 @@ namespace ChappiePokeAPI
             {
                 System.IO.Directory.CreateDirectory(Paths.AssetUploadPath);
             }
-            services.AddDbContext<PokeDBContext>(options =>
+            services.AddDbContextPool<PokeDBContext>(options =>
             {
-                options.UseMySql(Configuration.GetConnectionString("PokeDB"));
+                options.UseLazyLoadingProxies().UseMySql(Configuration.GetConnectionString("PokeDB")).ConfigureWarnings(w => w.Ignore(CoreEventId.DetachedLazyLoadingWarning));
             });
             services.AddCors(o => {
                 o.AddPolicy("MyPolicy", builder =>

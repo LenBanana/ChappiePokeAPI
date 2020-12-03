@@ -9,6 +9,7 @@ namespace Models.DTOModels
     {
         public List<IFormFile> Files { get; set; }
         public string Param { get; set; }
+        public int ProductID { get; set; }
 
     }
 }

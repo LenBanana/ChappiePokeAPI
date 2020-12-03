@@ -11,6 +11,8 @@ using Models.DTOResponseModels;
 using Models.Enums;
 using Models.DTOModels;
 using Models.DTOExtensions;
+using Microsoft.EntityFrameworkCore;
+using HelperVariables.Globals;
 
 namespace ChappiePokeAPI.Hubs
 {
@@ -58,7 +60,7 @@ namespace ChappiePokeAPI.Hubs
         {
             PasswordConfirmationError error = PasswordConfirmationError.NoError;
             User user = PokeDB.Users.FirstOrDefault(
-                x => ((x.Username.ToLower() == request.UsernameOrMail.ToLower() || x.Email.ToLower() == request.UsernameOrMail.ToLower()) && x.Password == request.Password)); // + "$" + x.PasswordSalt
+                x => ((x.Username.ToLower() == request.UsernameOrMail.ToLower() || x.Email.ToLower() == request.UsernameOrMail.ToLower()) && x.Password == request.Password + "$" + x.PasswordSalt)); //
             if (user == null)
             {
                 error = PasswordConfirmationError.WrongPassword;
@@ -79,7 +81,7 @@ namespace ChappiePokeAPI.Hubs
         public async Task Login(LoginRequest loginRequest)
         {
             User user = PokeDB.Users.FirstOrDefault(
-                x => ((x.Username.ToLower() == loginRequest.UsernameOrMail.ToLower() || x.Email.ToLower() == loginRequest.UsernameOrMail.ToLower()) && x.Password == loginRequest.Password) // + "$" + x.PasswordSalt
+                x => ((x.Username.ToLower() == loginRequest.UsernameOrMail.ToLower() || x.Email.ToLower() == loginRequest.UsernameOrMail.ToLower()) && x.Password == loginRequest.Password + "$" + x.PasswordSalt) //
                     || (loginRequest.SessionKey.Length > 0 && x.SessionKey == loginRequest.SessionKey));
             if (user != null)
                 await PokeDB.Login(user);
@@ -144,6 +146,8 @@ namespace ChappiePokeAPI.Hubs
             User user = PokeDB.GetUserCopy(request.SessionKey, true);
             if (user != null)
                 await Clients.Caller.SendAsync("OrderRequest", user.Orders);
+            else
+                await Clients.Caller.SendAsync("OrderRequest");
         }
 
         public async Task GetCustomer(GenericRequest request)
@@ -165,9 +169,6 @@ namespace ChappiePokeAPI.Hubs
         public async Task GetPulls()
         {
             List<Pull> pulls = PokeDB.Pulls.ToList();
-            pulls.ForEach(x => x.Card = PokeDB.Cards.FirstOrDefault(y => y.CardID == x.CardID));
-            pulls.ForEach(x => x.Card.Image = PokeDB.Images.FirstOrDefault(y => y.ImageID == x.Card.ImageID));
-            pulls.ForEach(x => x.Card.Product = PokeDB.Products.FirstOrDefault(y => y.ProductID == x.Card.ProductID));
             await Clients.Caller.SendAsync("PullRequest", pulls);
         }
 
@@ -178,7 +179,7 @@ namespace ChappiePokeAPI.Hubs
             {
                 List<Product> products = PokeDB.GetProducts();
                 products.ForEach(x => x.SaleOrderProducts = PokeDB.SaleOrderProducts.Where(y => y.ProductID == x.ProductID).ToList());
-                products.ForEach(x => x.SaleOrderProducts.ForEach(y => y.Order = PokeDB.Orders.First(z => z.OrderID == y.OrderID)));
+                //products.ForEach(x => x.SaleOrderProducts.ForEach(y => y.Order = PokeDB.Orders.First(z => z.OrderID == y.OrderID)));
                 await Clients.Caller.SendAsync("ShopAdminRequest", products);
             }
         }
@@ -220,21 +221,6 @@ namespace ChappiePokeAPI.Hubs
 
         }
 
-        public async Task UpdateProduct(Product product)
-        {
-            var prod = PokeDB.Products.First(x => x.ProductID == product.ProductID);
-            prod.ProductGroups = PokeDB.ProductGroups.Where(x => x.ProductID == prod.ProductID).ToList();
-            prod.ProductGroups.ForEach(x => x.Group = PokeDB.Groups.First(y => y.GroupID == x.GroupID));
-            PokeDB.Groups.RemoveRange(prod.ProductGroups.Select(x => x.Group));
-            prod.Name = product.Name;
-            prod.Type = product.Type;
-            prod.Description = product.Description;
-            prod.Cost = product.Cost;
-            prod.Price = product.Price;
-            prod.ProductGroups = product.ProductGroups;
-            await PokeDB.SaveChangesAsync();
-        }
-
         public async Task SetPassword(PasswordRequest request)
         {
             User user = PokeDB.Users.FirstOrDefault(x => x.SessionKey == request.SessionKey);
@@ -265,16 +251,22 @@ namespace ChappiePokeAPI.Hubs
             User user = PokeDB.GetUserCopy(request.SessionKey, false);
             if (user != null && user.UserPrivileges == UserPrivileges.Administrator)
             {
+                int ProductID = 0;
+                ProductAddResponse response = new ProductAddResponse();
                 if (product.ProductID > 0)
                 {
-                    await UpdateProduct(product);
+                    ProductID = (await PokeDB.UpdateProduct(product)).ProductID;
                 }
                 else
                 {
                     PokeDB.Products.Add(product);
                     await PokeDB.SaveChangesAsync();
+                    ProductID = product.ProductID;
                 }
-                await Clients.Caller.SendAsync("AddProductSuccess", true);
+                response.Success = true;
+                if (ProductID != 0)
+                    response.ProductID = ProductID;
+                await Clients.Caller.SendAsync("AddProductSuccess", response);
                 await GetShopAdministration(request);
             }
         }
@@ -282,7 +274,7 @@ namespace ChappiePokeAPI.Hubs
         #endregion
 
 
-        // ******** ADD ********
+        // ******** DELETE ********
 
         public async Task DeleteProduct(GenericRequest request, Product product)
         {

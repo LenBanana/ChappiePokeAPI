@@ -37,5 +37,7 @@ namespace EntityModels.EntityModels
         [Required(AllowEmptyStrings = true)]
         public int PostalCode { get; set; }
         public DateTime LastModified { get; set; }
+
+        //public List<Customer> Customers { get; set; }
     }
 }

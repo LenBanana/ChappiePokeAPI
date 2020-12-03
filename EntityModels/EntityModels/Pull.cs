@@ -9,6 +9,10 @@ namespace EntityModels.EntityModels
 {
     public class Pull
     {
+        public Pull()
+        {
+
+        }
         public int PullID { get; set; }
         public int CardID { get; set; }
         [ForeignKey("CardID")]

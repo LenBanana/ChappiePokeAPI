@@ -8,9 +8,14 @@ namespace EntityModels.EntityModels
 {
     public class SaleOrderProduct
     {
+        public SaleOrderProduct()
+        {
+
+        }
         public int SaleOrderProductID { get; set; }
         public int OrderID { get; set; }
         [ForeignKey("OrderID")]
+        [System.Text.Json.Serialization.JsonIgnore]
         public virtual Order Order { get; set; }
         public int ProductID { get; set; }
         [ForeignKey("ProductID")]

@@ -12,9 +12,6 @@ namespace EntityModels.EntityModels
         public Customer()
         {
             Orders = new List<Order>();
-            User = new User();
-            BillingAddress = new Address();
-            ShippingAddress = new Address();
         }
 
         public int CustomerID { get; set; }
@@ -24,6 +21,7 @@ namespace EntityModels.EntityModels
         public string Name { get; set; }
         public int UserID { get; set; }
         [ForeignKey("UserID")]
+        [System.Text.Json.Serialization.JsonIgnore]
         public virtual User User { get; set; }
 
         [Required(AllowEmptyStrings = true)]

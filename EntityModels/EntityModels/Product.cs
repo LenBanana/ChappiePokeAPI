@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,6 +9,10 @@ namespace EntityModels.EntityModels
 {
     public class Product
     {
+        public Product()
+        {
+
+        }
         public int ProductID { get; set; }
 
         [Required(AllowEmptyStrings = true)]
@@ -24,10 +29,10 @@ namespace EntityModels.EntityModels
         public double Price { get; set; }
         public DateTime LastModified { get; set; }
         public DateTime DateCreated { get; set; }
-        public virtual List<ProductGroup> ProductGroups { get; set; }
-        public virtual List<ImageGroup> ImageGroups { get; set; }
-        public virtual List<Card> Cards { get; set; }
-        public virtual List<SaleOrderProduct> SaleOrderProducts { get; set; }
+        public virtual ICollection<ProductGroup> ProductGroups { get; set; }
+        public virtual ICollection<ImageGroup> ImageGroups { get; set; }
+        public virtual ICollection<Card> Cards { get; set; }
+        public virtual ICollection<SaleOrderProduct> SaleOrderProducts { get; set; }
 
     }
 }
