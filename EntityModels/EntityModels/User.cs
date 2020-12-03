@@ -59,7 +59,7 @@ namespace EntityModels.EntityModels
         public async Task<bool> SendRegisterMail()
         {
             string subject = "Chappie Shop - Account Verification for " + Username;
-            string path = System.IO.Directory.GetCurrentDirectory() + "\\Files\\VerificationMail.html";
+            string path = System.IO.Directory.GetCurrentDirectory() + "/Files/VerificationMail.html";
             string message = System.IO.File.ReadAllText(path);
             message = message.Replace("{{Username}}", Username);
             message = message.Replace("{{VerificationCode}}", RegisterCode.Code.ToString());
